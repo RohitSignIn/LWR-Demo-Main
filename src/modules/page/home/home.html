@@ -1,0 +1,145 @@
+<template>
+  
+	<div class="slds-modal__container">
+
+		<div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+			<template if:true={hasFields}>
+				<template for:each={previewFields} for:item="field">
+					<template if:true={field.fields}>
+						<div key={field.name} class="slds-box slds-m-bottom_medium">
+							<h3 class="slds-text-heading_small slds-m-bottom_small">{field.label}</h3>
+							<template if:true={field.repeat}>
+								<div class="slds-text-body_small slds-m-bottom_small">This section is repeatable</div>
+							</template>
+							<template for:each={field.fields} for:item="sectionField">
+								<div key={sectionField.name} class="slds-m-bottom_small">
+									<template if:true={sectionField.type}>
+										<lightning-input 
+											if:true={sectionField.isStandardInput}
+											label={sectionField.label}
+											name={sectionField.name}
+											type={sectionField.type}
+											required={sectionField.required}
+											disabled
+											value={sectionField.value}
+										></lightning-input>
+										<lightning-textarea 
+											if:true={sectionField.isTextarea}
+											label={sectionField.label}
+											name={sectionField.name}
+											required={sectionField.required}
+											disabled
+											value={sectionField.value}
+										></lightning-textarea>
+										<lightning-combobox
+											if:true={field.isCombobox}
+											label={field.label}
+											name={field.name}
+											options={field.options}
+											value={field.value}
+											required={field.required}
+											onchange={handleFieldChange}
+										></lightning-combobox>
+										<lightning-radio-group
+											if:true={sectionField.isRadioGroup}
+											label={sectionField.label}
+											name={sectionField.name}
+											options={sectionField.options}
+											required={sectionField.required}
+											disabled
+											value={sectionField.value}
+										></lightning-radio-group>
+										<lightning-checkbox-group
+											if:true={sectionField.isCheckboxGroup}
+											label={sectionField.label}
+											name={sectionField.name}
+											options={sectionField.options}
+											required={sectionField.required}
+											disabled
+											value={sectionField.value}
+										></lightning-checkbox-group>
+										<lightning-button
+											if:true={sectionField.isButton}
+											label={sectionField.label}
+											name={sectionField.name}
+											variant="neutral"
+											disabled
+										></lightning-button>
+										<div if:true={sectionField.isHeader} class="slds-text-heading_large">
+											{sectionField.label}
+										</div>
+									</template>
+								</div>
+							</template>
+						</div>
+					</template>
+					<template if:false={field.fields}>
+					   
+						<div key={field.name} class="slds-m-bottom_small">
+							<template if:true={field.type}>
+								<lightning-input 
+									if:true={field.isStandardInput}
+									label={field.label}
+									name={field.name}
+									type={field.type}
+									required={field.required}
+									value={field.value}
+									onchange={handleFieldChange}
+								></lightning-input>
+								<lightning-textarea 
+									if:true={field.isTextarea}
+									label={field.label}
+									name={field.name}
+									required={field.required}
+									value={field.value}
+									onchange={handleFieldChange}
+								></lightning-textarea>
+								<lightning-combobox
+									if:true={field.isCombobox}
+									label={field.label}
+									name={field.name}
+									options={field.options}
+									required={field.required}
+									value={field.value}
+									onchange={handleFieldChange}
+								></lightning-combobox>
+								<lightning-radio-group
+									if:true={field.isRadioGroup}
+									label={field.label}
+									name={field.name}
+									options={field.options}
+									required={field.required}
+									value={field.value}
+									onchange={handleFieldChange}
+								></lightning-radio-group>
+								<lightning-checkbox-group
+									if:true={field.isCheckboxGroup}
+									label={field.label}
+									name={field.name}
+									options={field.options}
+									required={field.required}
+									value={field.value}
+									onchange={handleFieldChange}
+								></lightning-checkbox-group>
+								<lightning-button
+									if:true={field.isButton}
+									label={field.label}
+									name={field.name}
+									variant="neutral"
+									onclick={handleButtonClick}
+								></lightning-button>
+								<div if:true={field.isHeader} class="slds-text-heading_medium">
+									{field.label}
+								</div>
+							</template>
+						</div>
+					</template>
+				</template>
+			</template>
+			<template if:false={hasFields}>
+				<p>No fields to display.</p>
+			</template>
+		</div>
+	</div>
+
+</template>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>SalesForce Authentication</title>
+    <script th:inline="javascript">
+        let baseUrl = /*[[@{${baseUrl}}]]*/ 'https://signmadeasy.app';
+        // let baseUrl = 'http://localhost:8080';
+    </script>
+</head>
+<script> 
+    setTimeout(() => {
+        console.log("check")
+        window.close();
+    }, 3000)   
+</script>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
+    * {
+        font-family: "Poppins", sans-serif;
+        font-weight: 400;
+        font-style: normal;
+        padding: 0;
+        margin: 0;
+    }
+
+    html,
+    body {
+        width: 100vw;
+        height: 100vh;
+    }
+
+    .parent {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+        font-size: 20px;
+        position: relative;
+        justify-content: center;
+    }
+
+    body {
+        background-color: #DEF2FE;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .loader {
+        width: 300px;
+        height: 100px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+    }
+
+    .bar {
+        width: 20px;
+        height: 10px;
+        margin: 0 5px;
+        background-color: #3498db;
+        border-radius: 5px;
+        animation: loading-wave-animation 1s ease-in-out infinite;
+    }
+
+    .bar:nth-child(2) {
+        animation-delay: 0.1s;
+    }
+
+    .bar:nth-child(3) {
+        animation-delay: 0.2s;
+    }
+
+    .bar:nth-child(4) {
+        animation-delay: 0.3s;
+    }
+
+    @keyframes loading-wave-animation {
+        0% {
+            height: 10px;
+        }
+
+        50% {
+            height: 50px;
+        }
+
+        100% {
+            height: 10px;
+        }
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        callback();
+    });
+    async function callback() {
+        let newDiv = document.createElement('div');
+        let centerDiv = document.getElementById("center");
+        let parentDiv = document.getElementById("parent");
+        try {
+            let url = window.location.search;
+            console.log(url);
+            let searchParams = new URLSearchParams(url);
+            let code = searchParams.get("code");
+            let object = searchParams.get("state");
+            try {
+                var isSandbox = split[0] === "production" ? false : true;
+                var org_Id = split[1];
+                var uid = split[2];
+                baseUrl = baseUrl + "/api/token/callback";
+            }
+            catch (splitError) {
+                throw new Error("Required parameter doesn't match.Error code:c1");
+            }
+            if (!uid || !org_Id || !code) {
+                throw new Error("Invalid payload.Error code:p1");
+            }
+            let dataObj = {};
+            dataObj.code = code;
+            dataObj.isSandbox = isSandbox;
+            dataObj.org_Id = org_Id;
+            dataObj.uid = uid;
+            dataObj.password = password;
+            await fetch(baseUrl, {
+                method: "POST",
+                headers: new Headers({
+                    "Content-Type": "application/json;charset=utf-8",
+                    "Access-Control-Allow-Methods": "POST",
+                    "Access-Control-Allow-Origin": "*",
+                }),
+                body: JSON.stringify(dataObj),
+            })
+                .then(res => {
+                    if (res.status === 201) {
+                        return { message: "Connected", success: true };
+                    }
+                    return res.json();
+                })
+                .then((res) => {
+                    let timeOut = 0;
+                    if (res.success) {
+                        const success = `<i class="fa fa-rocket" style="color:rgb(51, 119, 221);font-size:100px; position:absolute;right:-30%;top:-60%"></i>
+                        <p style="color: rgb(51, 119, 221); font-size:80px;">${res.message}</p>`;
+                        timeOut = 3;
+                        newDiv.innerHTML = success;
+                    }
+                    else {
+                        const error = `<i class="fa fa-rocket" style="color:rgb(51, 119, 221);font-size:100px; position:absolute;right:-30%;top:-60%"></i>
+                        <p style="color: rgb(51, 119, 221); font-size:80px;">Hmm...</p>
+                        <div><p>Error while authenticating, Closing tab in 5 secs</p><p><b>${res.message}</p></b></div>`;
+                        timeOut = 5;
+                        newDiv.innerHTML = error;
+                    }
+                    if (centerDiv.firstChild != null) {
+                        while (centerDiv.firstChild)
+                            centerDiv.firstChild.remove();
+                        centerDiv.appendChild(newDiv);
+                    }
+                    else
+                        parentDiv.appendChild(newDiv);
+                    setTimeout(() => window.close(), timeOut * 1000);
+                }).catch(error => {
+                    newDiv.innerText = "Internal server error.Error code:c2";
+                    centerDiv.appendChild(newDiv);
+                    setTimeout(() => window.close(), 5000);
+                });
+        }
+        catch (err) {
+            if (err.message) {
+                const error = `<i class="fa fa-rocket" style="color:rgb(51, 119, 221);font-size:100px; position:absolute;right:-30%;top:-60%"></i>
+                    <p style="color: rgb(51, 119, 221); font-size:80px;">Hmm...</p>
+                    <div><p>Error while authenticating,<p><b>${err.message}</b></p></div>`;
+                newDiv.innerHTML = error;
+            }
+            else {
+                newDiv.innerText = "Unknown error.Please contact administrator.Error code:c32";
+            }
+            if (centerDiv != null) {
+                while (centerDiv.firstChild)
+                    centerDiv.firstChild.remove();
+                centerDiv.appendChild(newDiv);
+            }
+            else
+                parentDiv.appendChild(newDiv);
+            setTimeout(() => window.close(), 5000);
+        }
+    }
+</script>
+
+<body>
+<div id="parent" class="parent">
+    <div id="center" class="loader">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+    </div>
+</div>
+</body>
+
+</html>
