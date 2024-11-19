@@ -1,26 +1,210 @@
-import httpReqInsertForm from "../httpReq/insertForm.httpReq.js";
+import jsforce from 'jsforce';
+import { v4 as uuidv4 } from 'uuid';
+
 import resObject from "../response/allResponse.js";
+import { getTempOrgid } from './template.controllers.js';
+import { get_instance_url } from './auth.controllers.js';
 
-async function insertFormToSalesforce (req, res) {
+async function insertFormToSalesforce(req, res) {
+
+    let instanceUrl = ''
+    try{
+        console.log('In getting Org Id')
+        const tempOrgId = await getTempOrgid(req.body.templateId);
+              
+        if(tempOrgId){
+            console.log('In Getting Instance URI')
+            const iurl = await get_instance_url(tempOrgId)
+            console.log('Instance URI => ', iurl)
+            if(iurl) {
+                instanceUrl = iurl
+            }
+        }
+        console.log(instanceUrl, 'hereeeeeeeeeeeeeeeeeeeeeee<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+    }catch(err){
+        return res.status(500).send(
+            resObject(false, {
+                success: false,
+                message: "Not valid ! Error: Instannce Url not found",
+            })
+        );
+    }
+
+    // Create a Jsforce connection using the provided access token and instance URL
+    const conn = new jsforce.Connection({
+        accessToken: req.body.access_token,
+        instanceUrl: instanceUrl
+    });
+
+    // Extract form data from the request body
+    const formData = req.body.jsonData;
+
+
+    // Get unique object names from the form data
+    const allObjects = [...new Set(formData.map((obj) => obj.object))];
+
+    // Initialize an array to hold fields for each object
+    let allFieldsPerObject = [];
+    let referTo = []
+
+    // Group form fields by object name
+    for (const objectName of allObjects) {
+
+        allFieldsPerObject[objectName] = formData
+            .filter((obj) => obj.object === objectName)
+            .reduce((acc, obj) => {
+                if ("repeatCount" in obj) {
+
+                    const repeatCount = acc.length > 0 ? acc[acc.length - 1].repeatCount : 0
+
+                    if (repeatCount && repeatCount == obj.repeatCount) {
+
+                        acc[acc.length - 1] = { ...acc[acc.length - 1], [obj.apiName]: obj.userInput } // Map API names to their values
+                    } else {
+                        acc.push({ [obj.apiName]: obj.userInput, "repeatCount": obj.repeatCount }); // Map API names to their values
+                    }
+                } else {
+                    acc.push({ [obj.apiName]: obj.userInput })
+                }
+                return acc;
+            }, []);
+
+        referTo[objectName] = formData
+            .filter((obj) => obj.object === objectName)
+            .reduce((acc, obj) => {
+                acc['refer'] = obj.refer; // Map API names to their values
+
+                if (obj.refer) {
+                    acc['referToField'] = obj.referToField;
+                    acc['referToObj'] = obj.referToObj;
+                }
+
+                return acc;
+            }, []);
+
+        referTo[objectName] = formData
+            .filter((obj) => obj.object === objectName)
+            .reduce((acc, obj) => {
+                acc['refer'] = obj.refer; // Map API names to their values
+
+                if (obj.refer) {
+                    acc['referToField'] = obj.referToField;
+                    acc['referToObj'] = obj.referToObj;
+                }
+
+                return acc;
+            }, {});
+    }
+    // Construct the composite request
+    const compositeRequest = {
+        compositeRequest: []
+    };
+
+    const objKeys = Object.keys(allFieldsPerObject)
+    for (const obj of objKeys) {
+        if (!("repeatCount" in allFieldsPerObject[obj][0])) {
+            let fl = allFieldsPerObject[obj][0];
+            for (let i = 1; i < allFieldsPerObject[obj].length; i++) {
+                fl = { ...fl, ...allFieldsPerObject[obj][i] }
+            }
+            allFieldsPerObject[obj] = [fl];
+        }
+    }
+
+
+
+    let referenceCount = 0
+
+    // Loop through each object to build the composite request
+    for (const object of Object.keys(allFieldsPerObject)) {
+        // Generate a unique reference ID for the request
+        let fields = allFieldsPerObject[object];
+        let refer = referTo[object]['refer'];
+        let referToField = null;
+        let referToObj = null;
+
+        if (refer) {
+            referToField = referTo[object]['referToField'];
+            referToObj = referTo[object]['referToObj'];
+
+        }
+
+        // const currReferenceId = "aucuyachedcvyuheavchuaebcyhec";
+        // const currReferenceId = 'sefswevwsevsevevsv';
+        let currReferenceId = uuidv4().replace(/[-]/g, '');
+
+        allFieldsPerObject[object]['referenceId'] = currReferenceId;
+
+        // if(referenceCount === 0) {
+        //     firstObjectReference = currReferenceId;
+
+        // }
+
+        // console.log(refer, 'refer', referenceCount, referTo);
+        // console.log( allFieldsPerObject, 'Reference Id');
+
+        if (refer && refer !== 'false' && 'referenceId' in allFieldsPerObject[referToObj]) {
+            // console.log('Iam In', allFieldsPerObject[referToObj]['referenceId']);
+
+            for (let i = 0; i < fields.length; i++) {
+                fields[i] = { ...fields[i], [referToField]: `@{${allFieldsPerObject[referToObj]["referenceId"]}.id}` }
+                // fields[referToField] = `@{${allFieldsPerObject[referToObj]['referenceId']}.id}`;
+            }
+        }
+
+
+        // if (fields.length > 1) {
+        // Add each object creation request to the composite request
+        // console.log(fields, referTo)
+
+        for (const field of fields) {
+            // console.log(field)
+            delete field.repeatCount
+            compositeRequest.compositeRequest.push({
+                method: 'POST',
+                url: `/services/data/v52.0/sobjects/${object}`,
+                referenceId: `${currReferenceId}`, // Use the reference ID for tracking
+                body: field // Set the body to the fields mapped earlier
+            });
+            currReferenceId = uuidv4().replace(/[-]/g, '');
+        }
+        // } else {
+        //     // Add each object creation request to the composite request
+        //     compositeRequest.compositeRequest.push({
+        //         method: 'POST',
+        //         url: `/services/data/v52.0/sobjects/${object}`,
+        //         referenceId: `${currReferenceId}`, // Use the reference ID for tracking
+        //         body: fields[0] // Set the body to the fields mapped earlier
+        //     });
+        // }
+        referenceCount += 1;
+    }
+
+    console.log(compositeRequest.compositeRequest, '<<<<<<<<<< here is the composite req', instanceUrl)
+
     try {
-        const url = 'https://hicglobasolutions-dev-ed.develop.my.salesforce.com/services/apexrest/insertFormEntry';
-        const jsonData = req.body.jsonData;
-        const name = req.body.name;
-        const templateId = req.body.templateId;
-        const access_token = req.body.access_token;
+        // Send the composite request to Salesforce
+        const queryResult = await conn.requestPost('/services/data/v52.0/composite', compositeRequest);
+        //  console.log(queryResult, 'Here is the Response'); // Log the response for debugging
+        //  return res.status(201).send(compositeRequest); // Send back a 201 response with the result
 
-        const insertFormRes = await httpReqInsertForm(url, access_token, name, jsonData, templateId);
+        return res.status(201).send(
+            resObject(true, {
+                success: true,
+                message: "Form submitted successfully",
+            })
+        );
 
-        if(insertFormRes) {
-            return res.status(201).send(resObject(true, {message: "Submited Successfully"}));
-        }       
-        
     } catch (error) {
-        console.log("Form Controller:", error);
-        return res.status(500).send(resObject(false, {message: "Unable to submit, try again"}));
+        console.log("Form Controller:", error); // Log any errors that occur
+        //  return res.status(500).send("InsertForm Failure"); // Send a 500 response on failure
+        return res.status(500).send(
+            resObject(false, {
+                success: false,
+                message: "Unable to Submit form",
+            })
+        );
     }
 }
 
-
 export default insertFormToSalesforce;
-  

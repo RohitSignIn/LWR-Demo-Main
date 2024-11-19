@@ -1,145 +1,120 @@
 <template>
-  
-	<div class="slds-modal__container">
+    <div class="slds-template_default slds-template_bottom-magnet">
+        <div class="slds-grid slds-grid_vertical">
+            <div class="slds-col slds-theme_shade slds-p-around_medium">
 
-		<div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
-			<template if:true={hasFields}>
-				<template for:each={previewFields} for:item="field">
-					<template if:true={field.fields}>
-						<div key={field.name} class="slds-box slds-m-bottom_medium">
-							<h3 class="slds-text-heading_small slds-m-bottom_small">{field.label}</h3>
-							<template if:true={field.repeat}>
-								<div class="slds-text-body_small slds-m-bottom_small">This section is repeatable</div>
-							</template>
-							<template for:each={field.fields} for:item="sectionField">
-								<div key={sectionField.name} class="slds-m-bottom_small">
-									<template if:true={sectionField.type}>
-										<lightning-input 
-											if:true={sectionField.isStandardInput}
-											label={sectionField.label}
-											name={sectionField.name}
-											type={sectionField.type}
-											required={sectionField.required}
-											disabled
-											value={sectionField.value}
-										></lightning-input>
-										<lightning-textarea 
-											if:true={sectionField.isTextarea}
-											label={sectionField.label}
-											name={sectionField.name}
-											required={sectionField.required}
-											disabled
-											value={sectionField.value}
-										></lightning-textarea>
-										<lightning-combobox
-											if:true={field.isCombobox}
-											label={field.label}
-											name={field.name}
-											options={field.options}
-											value={field.value}
-											required={field.required}
-											onchange={handleFieldChange}
-										></lightning-combobox>
-										<lightning-radio-group
-											if:true={sectionField.isRadioGroup}
-											label={sectionField.label}
-											name={sectionField.name}
-											options={sectionField.options}
-											required={sectionField.required}
-											disabled
-											value={sectionField.value}
-										></lightning-radio-group>
-										<lightning-checkbox-group
-											if:true={sectionField.isCheckboxGroup}
-											label={sectionField.label}
-											name={sectionField.name}
-											options={sectionField.options}
-											required={sectionField.required}
-											disabled
-											value={sectionField.value}
-										></lightning-checkbox-group>
-										<lightning-button
-											if:true={sectionField.isButton}
-											label={sectionField.label}
-											name={sectionField.name}
-											variant="neutral"
-											disabled
-										></lightning-button>
-										<div if:true={sectionField.isHeader} class="slds-text-heading_large">
-											{sectionField.label}
-										</div>
-									</template>
-								</div>
-							</template>
-						</div>
-					</template>
-					<template if:false={field.fields}>
-					   
-						<div key={field.name} class="slds-m-bottom_small">
-							<template if:true={field.type}>
-								<lightning-input 
-									if:true={field.isStandardInput}
-									label={field.label}
-									name={field.name}
-									type={field.type}
-									required={field.required}
-									value={field.value}
-									onchange={handleFieldChange}
-								></lightning-input>
-								<lightning-textarea 
-									if:true={field.isTextarea}
-									label={field.label}
-									name={field.name}
-									required={field.required}
-									value={field.value}
-									onchange={handleFieldChange}
-								></lightning-textarea>
-								<lightning-combobox
-									if:true={field.isCombobox}
-									label={field.label}
-									name={field.name}
-									options={field.options}
-									required={field.required}
-									value={field.value}
-									onchange={handleFieldChange}
-								></lightning-combobox>
-								<lightning-radio-group
-									if:true={field.isRadioGroup}
-									label={field.label}
-									name={field.name}
-									options={field.options}
-									required={field.required}
-									value={field.value}
-									onchange={handleFieldChange}
-								></lightning-radio-group>
-								<lightning-checkbox-group
-									if:true={field.isCheckboxGroup}
-									label={field.label}
-									name={field.name}
-									options={field.options}
-									required={field.required}
-									value={field.value}
-									onchange={handleFieldChange}
-								></lightning-checkbox-group>
-								<lightning-button
-									if:true={field.isButton}
-									label={field.label}
-									name={field.name}
-									variant="neutral"
-									onclick={handleButtonClick}
-								></lightning-button>
-								<div if:true={field.isHeader} class="slds-text-heading_medium">
-									{field.label}
-								</div>
-							</template>
-						</div>
-					</template>
+<template if:true={toast.active}>
+	<div class="slds-notify_container" style="position: absolute !important; top: 0rem !important;">
+		<div class={toastClass}  role="status" style="position: absolute !important; top: 1rem !important; right: 1rem !important;">
+			<span class="slds-assistive-text">{toast.title}</span>
+			<!-- <span class="slds-icon_container slds-icon-utility-error slds-m-right_small slds-no-flex slds-align-top" title="Description of icon when needed">
+				<svg class="slds-icon slds-icon_small" aria-hidden="true">
+					<use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#error"></use>
+				</svg>
+			</span> -->
+			<div class="slds-notify__content">
+				<h2 class="slds-text-heading_small ">{toast.message}</h2>
+			</div>
+			<div class="slds-notify__close">
+						<!-- <button class="slds-button slds-button_icon slds-button_icon-inverse" title="Close">
+						  <svg class="slds-button__icon slds-button__icon_large" aria-hidden="true">
+							<use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#close"></use>
+						</svg>
+						<span class="slds-assistive-text">Close</span>
+					</button> -->
+					  </div>
+					</div>
+				  </div>	
 				</template>
-			</template>
-			<template if:false={hasFields}>
-				<p>No fields to display.</p>
-			</template>
-		</div>
-	</div>
 
+
+                <!-- <header class="slds-page-header">
+                    <div class="slds-page-header__row">
+                        <div class="slds-page-header__col-title">
+                            <div class="slds-media">
+                                <div class="slds-media__figure">
+                                    <lightning-icon icon-name="standard:form" alternative-text="Form Preview" size="medium"></lightning-icon>
+                                </div>
+                                <div class="slds-media__body">
+                                    <h1 class="slds-page-header__title slds-truncate slds-align-middle" title="Form Preview">Form Preview: {formName}</h1>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-page-header__col-actions">
+                            <div class="slds-page-header__controls">
+                                <lightning-button-icon icon-name="utility:close" variant="border-filled" alternative-text="Close" title="Close" onclick={closeModal}></lightning-button-icon>
+                            </div>
+                        </div>
+                    </div>
+                </header> -->
+
+                <div class="slds-col slds-theme_default">
+                    <div class="slds-p-around_medium">
+                         <!-- Progress Indicator  -->
+                    <div class="slds-progress slds-progress_shade slds-m-bottom_large">
+                        <ol class="slds-progress__list">
+                            <template for:each={progressSteps} for:item="step">
+                                <li key={step.id} class={step.class}>
+                                    <div class={step.markerClass} tabindex="0">
+                                        <template if:true={step.completed}>
+                                            <lightning-icon icon-name="utility:success" size="xx-small" variant="inverse"></lightning-icon>
+                                        </template>
+                                    </div>
+                                </li>
+                            </template>
+                        </ol>
+                        <div class="slds-progress-bar slds-progress-bar_x-small" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progressPercentage} aria-label="Form completion progress" role="progressbar">
+                            <span class="slds-progress-bar__value" style={progressStyle}></span>
+                        </div>
+                    </div>
+                        <div class="slds-card slds-p-around_medium">
+                            <template if:true={hasFields}>
+                                <template for:each={displayedFields} for:item="field">
+                                    <template if:true={field.fields}>
+                                        <div key={field.name} class="slds-box slds-theme_shade slds-m-bottom_medium">
+                                            <h3 class="slds-text-heading_small slds-m-bottom_small">{field.label}</h3>
+                                            <template for:each={field.fields} for:item="sectionField">
+                                                <div key={sectionField.name} class="slds-m-bottom_small">
+                                                    <lightning-input if:true={sectionField.isStandardInput} label={sectionField.label} name={sectionField.name} type={sectionField.type} required={sectionField.required} value={sectionField.value} onchange={handleInputChange} message-when-value-missing={sectionField.errorMessage}></lightning-input>
+                                                    <lightning-textarea if:true={sectionField.isTextarea} label={sectionField.label} name={sectionField.name} required={sectionField.required} value={sectionField.value} onchange={handleInputChange} message-when-value-missing={sectionField.errorMessage}></lightning-textarea>
+                                                    <lightning-combobox if:true={sectionField.isCombobox} label={sectionField.label} name={sectionField.name} options={sectionField.options} required={sectionField.required} value={sectionField.value} onchange={handleInputChange} message-when-value-missing={sectionField.errorMessage}></lightning-combobox>
+                                                    <lightning-radio-group if:true={sectionField.isRadioGroup} label={sectionField.label} name={sectionField.name} options={sectionField.options} required={sectionField.required} value={sectionField.value} onchange={handleInputChange} message-when-value-missing={sectionField.errorMessage}></lightning-radio-group>
+                                                    <lightning-checkbox-group if:true={sectionField.isCheckboxGroup} label={sectionField.label} name={sectionField.name} options={sectionField.options} required={sectionField.required} value={sectionField.value} onchange={handleInputChange} message-when-value-missing={sectionField.errorMessage}></lightning-checkbox-group>
+                                                    <template if:true={sectionField.errorMessage}>
+                                                        <div class="slds-text-color_error">{sectionField.errorMessage}</div>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <template if:false={field.fields}>
+                                        <div key={field.name} class="slds-m-bottom_small">
+                                            <lightning-input if:true={field.isStandardInput} label={field.label} name={field.name} type={field.type} required={field.required} value={field.value} onchange={handleInputChange}></lightning-input>
+                                            <lightning-textarea if:true={field.isTextarea} label={field.label} name={field.name} required={field.required} value={field.value} onchange={handleInputChange}></lightning-textarea>
+                                            <lightning-combobox if:true={field.isCombobox} label={field.label} name={field.name} options={field.options} required={field.required} value={field.value} onchange={handleInputChange}></lightning-combobox>
+                                            <lightning-radio-group if:true={field.isRadioGroup} label={field.label} name={field.name} options={field.options} required={field.required} value={field.value} onchange={handleInputChange}></lightning-radio-group>
+                                            <lightning-checkbox-group if:true={field.isCheckboxGroup} label={field.label} name={field.name} options={field.options} required={field.required} value={field.value} onchange={handleInputChange}></lightning-checkbox-group>
+                                        </div>
+                                    </template>
+                                </template>
+        
+                                <!-- Pagination footer -->
+                                <footer class="slds-grid slds-grid_align-spread slds-m-top_large">
+                                    <lightning-button label="Previous" variant="brand-outline" onclick={handlePrevious} disabled={isPreviousDisabled} class="slds-col slds-size_auto"></lightning-button>
+                                    <p class="slds-col slds-text-align_center slds-text-title_caps">Page {currentPage} of {totalPages}</p>
+                                    <lightning-button label="Next" variant="brand-outline" onclick={handleNext} disabled={isNextDisabled} class="slds-col slds-size_auto"></lightning-button>
+                                </footer>
+                            </template>
+                            <template if:false={hasFields}>
+                                <p class="slds-text-align_center slds-text-title_caps">No fields to display.</p>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-grid slds-grid_align-end" style="padding-top: 10px;">
+                    <lightning-button variant="success" label="Submit" class="" onclick={handleFormSubmit} disabled={isSubmitDisabled}>Submit</lightning-button>
+                </div>
+            </div>
+        </div>
+    </div>
 </template>

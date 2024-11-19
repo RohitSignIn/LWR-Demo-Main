@@ -20,7 +20,7 @@ const LWR_PORT = parseInt(process.env.LWR_PORT || '3001', 10);
 
 
 const corsOption = {
-	origin: ['http://localhost:5174', 'https://hicglobasolutions-dev-ed.develop.lightning.force.com'],
+	origin: ['http://localhost:5174', 'https://hicglobasolutions-dev-ed.develop.lightning.force.com', 'http://13.202.250.26:3001'],
   };
 
 app.use(cors(corsOption))

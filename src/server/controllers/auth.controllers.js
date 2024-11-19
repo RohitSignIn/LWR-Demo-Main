@@ -116,9 +116,24 @@ async function auth_disconnect(req, res) {
   }
 }
 
+
+async function get_instance_url(orgId) {
+  try {
+    const orgData = await authService.fetchByOrgId(orgId);
+    const instanceUrl = orgData.instance_url;
+
+    if(!instanceUrl || !orgData) throw new Error('Error Getting Instance Url');
+
+    return instanceUrl;
+  } catch (error) {
+    console.log("Auth ControllerC", error.message);
+  }
+}
+
 export {
   auth_callback,
   auth_validate,
   auth_connected,
-  auth_disconnect
+  auth_disconnect,
+  get_instance_url
 };

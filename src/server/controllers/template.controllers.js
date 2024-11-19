@@ -93,9 +93,22 @@ async function remove(req, res) {
   }
 }
 
+
+async function getTempOrgid(templateId) {
+  try {
+    const tempData = await templateService.fetch({ _id: templateId });
+	console.log('here is the tempData', tempData, templateId)
+    const orgAuthId = tempData.org_auth_id || false;
+    return orgAuthId;
+  } catch (error) {
+    console.log("Template ControllerE", error.message);
+  }
+}
+
 export {
   create,
   updateTemplate,
   fetchByTempId,
   remove,
+  getTempOrgid
 };
